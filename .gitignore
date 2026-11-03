@@ -11,5 +11,6 @@ venv/
 
 # Generated dashboards
 gitpulse-*.html
+reports/
 dist/
 build/
