@@ -7,6 +7,8 @@ from typing import Any
 
 import requests
 
+from gitpulse import __version__
+
 
 class GitHubAPIError(RuntimeError):
     """An error returned by the GitHub API or the local HTTP client."""
@@ -32,7 +34,7 @@ class GitHubClient:
                 "Accept": "application/vnd.github+json",
                 "Authorization": f"Bearer {self.token}",
                 "X-GitHub-Api-Version": "2022-11-28",
-                "User-Agent": "gitpulse/0.1.0",
+                "User-Agent": f"gitpulse/{__version__}",
             }
         )
 

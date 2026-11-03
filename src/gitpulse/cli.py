@@ -20,6 +20,7 @@ from rich.progress import (
 )
 from rich.table import Table
 
+from gitpulse import __version__
 from gitpulse.github_api import GitHubAPIError, GitHubClient
 from gitpulse.org import OrgReport, collect_org
 from gitpulse.report import render_html
@@ -31,6 +32,21 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 console = Console()
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        console.print(f"gitpulse {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: bool = typer.Option(
+        False, "--version", callback=_version_callback, is_eager=True, help="Show the version and exit."
+    ),
+) -> None:
+    """Local GitHub repository traffic and release analytics."""
 
 
 def _client() -> GitHubClient:

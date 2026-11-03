@@ -4,7 +4,7 @@ A local Python CLI for GitHub repository traffic and release asset download stat
 
 > **What GitHub can tell you:** aggregate daily views and clones, unique counts, popular paths, referrers, and release-asset download totals. It does **not** identify individual visitors or people who cloned a repository. GitHub's traffic data is generally available for the most recent 14 days. Release asset downloads are not Homebrew formula install counts.
 
-![GitPulse organization dashboard](docs/screenshots/dashboard-light.png)
+![GitPulse organization dashboard](https://raw.githubusercontent.com/fullstackspectrum/gitpulse/main/docs/screenshots/dashboard-light.png)
 
 ## Requirements
 
@@ -23,7 +23,29 @@ Traffic endpoints only work for repositories you have push access to. Public vis
 
 ## Install
 
-From the project directory, create a virtual environment and install the project in editable mode:
+**Homebrew** (macOS and Linux):
+
+```sh
+brew install fullstackspectrum/gitpulse/gitpulse
+```
+
+**pipx or pip.** The package is called `gitpulse-analytics` on PyPI; the command it installs is `gitpulse`:
+
+```sh
+pipx install gitpulse-analytics
+# or
+python -m pip install gitpulse-analytics
+```
+
+**Docker.** Images for `linux/amd64` and `linux/arm64` are on [Docker Hub](https://hub.docker.com/r/fullstackspectrum/gitpulse). Mount a directory at `/data` to keep the HTML dashboard and snapshot history:
+
+```sh
+docker run --rm -e GITHUB_TOKEN -v "$PWD:/data" fullstackspectrum/gitpulse org ORG
+```
+
+The container runs as UID 1000. On Linux, if your user can't write the mounted directory as that UID, add `--user "$(id -u):$(id -g)"`.
+
+**From source**, for development:
 
 ```sh
 python3 -m venv .venv
@@ -31,6 +53,8 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e '.[dev]'
 ```
+
+Check the install with `gitpulse --version`.
 
 Set a token in your shell. `GITHUB_TOKEN` and `GH_TOKEN` are both supported. GitPulse never saves the token:
 
@@ -55,7 +79,7 @@ gitpulse org ORG --all --output reports/org.html   # include forks and archived 
 
 `org` works for an organization or a user account. It fetches every repository in parallel (`--workers`, default 8), then prints a summary in the terminal: totals, daily sparklines, a table of every repository, and the top referrers.
 
-![Terminal summary from gitpulse org](docs/screenshots/terminal.png)
+![Terminal summary from gitpulse org](https://raw.githubusercontent.com/fullstackspectrum/gitpulse/main/docs/screenshots/terminal.png)
 
 It also writes a self-contained HTML dashboard to `gitpulse-ORG.html` in the current directory, or to the path you pass with `--output`. The dashboard shows:
 
@@ -66,7 +90,7 @@ It also writes a self-contained HTML dashboard to `gitpulse-ORG.html` in the cur
 
 Styles, charts, and scripts are all inline, so it works offline (only the owner's avatar loads from GitHub). It follows your system's light or dark theme, and has a toggle to switch.
 
-![Dashboard in dark mode](docs/screenshots/dashboard-dark.png)
+![Dashboard in dark mode](https://raw.githubusercontent.com/fullstackspectrum/gitpulse/main/docs/screenshots/dashboard-dark.png)
 
 By default, forks and archived repositories are skipped; `--all` includes them. When your token can't read traffic for a repository, its stars, forks, and downloads still appear, and the dashboard lists which repositories are missing traffic and why. Unique visitor and cloner counts are summed per repository, so one person who visits two repositories is counted twice.
 
@@ -108,3 +132,10 @@ For tap repositories, clone traffic and unique cloners can be useful directional
 ## Development
 
 Run tests with `pytest` and lint with `ruff check .`.
+
+### Releasing
+
+1. Bump `__version__` in `src/gitpulse/__init__.py` and merge to `main`.
+2. Publish a GitHub release with the tag `vX.Y.Z` matching that version.
+
+The `Release` workflow checks that the tag matches the version, then publishes to PyPI. After that it pushes the multi-arch Docker image and updates the formula in [homebrew-gitpulse](https://github.com/fullstackspectrum/homebrew-gitpulse). A release marked as a pre-release goes to PyPI and to Docker Hub under its exact version tag only, without moving `latest` or the Homebrew formula. The formula template lives in `packaging/homebrew/`; edit it there, not in the tap.

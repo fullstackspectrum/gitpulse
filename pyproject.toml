@@ -1,14 +1,31 @@
 [build-system]
-requires = ["hatchling>=1.24"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gitpulse"
-version = "0.1.0"
-description = "A local CLI for GitHub repository traffic and release analytics"
+name = "gitpulse-analytics"
+dynamic = ["version"]
+description = "GitHub traffic, clones, referrers, and release downloads in your terminal, with org-wide HTML dashboards"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "FullStackSpectrum", email = "dev@fullstackspectrum.com" }]
+keywords = ["github", "traffic", "analytics", "dashboard", "cli", "releases", "downloads"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Version Control :: Git",
+  "Topic :: Utilities",
+]
 dependencies = [
   "requests>=2.32,<3",
   "rich>=13.7,<15",
@@ -18,11 +35,22 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8,<9", "ruff>=0.6,<1"]
 
+[project.urls]
+Homepage = "https://github.com/fullstackspectrum/gitpulse"
+Issues = "https://github.com/fullstackspectrum/gitpulse/issues"
+Changelog = "https://github.com/fullstackspectrum/gitpulse/releases"
+
 [project.scripts]
 gitpulse = "gitpulse.cli:app"
 
+[tool.hatch.version]
+path = "src/gitpulse/__init__.py"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/gitpulse"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md", "LICENSE"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
