@@ -145,7 +145,8 @@ Run tests with `pytest` and lint with `ruff check .`.
 
 ### Releasing
 
-1. Bump `__version__` in `src/gitpulse/__init__.py` and merge to `main`.
-2. Publish a GitHub release with the tag `vX.Y.Z` matching that version.
+1. Bump `__version__` in `src/gitpulse/__init__.py`.
+2. In [CHANGELOG.md](CHANGELOG.md), move the `Unreleased` entries under a new `X.Y.Z` heading with the date, and update the comparison links at the bottom. Merge to `main`.
+3. Publish a GitHub release with the tag `vX.Y.Z` matching that version, using that version's changelog section as the release notes.
 
 The `Release` workflow checks that the tag matches the version, then publishes to PyPI. After that it pushes the multi-arch Docker image and updates the formula in [homebrew-gitpulse](https://github.com/fullstackspectrum/homebrew-gitpulse). A release marked as a pre-release goes to PyPI and to Docker Hub under its exact version tag only, without moving `latest` or the Homebrew formula. The formula template lives in `packaging/homebrew/`; edit it there, not in the tap.
