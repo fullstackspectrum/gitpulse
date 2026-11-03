@@ -1,7 +1,7 @@
 # GitPulse
 
 [![CI](https://img.shields.io/github/actions/workflow/status/fullstackspectrum/gitpulse/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/fullstackspectrum/gitpulse/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/gitpulse-analytics?style=for-the-badge&logo=pypi&logoColor=white&color=3775A9)](https://pypi.org/project/gitpulse-analytics/)
+[![PyPI](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpypi.org%2Fpypi%2Fgitpulse-analytics%2Fjson&query=%24.info.version&prefix=v&label=pypi&style=for-the-badge&logo=pypi&logoColor=white&color=3775A9)](https://pypi.org/project/gitpulse-analytics/)
 [![Python](https://img.shields.io/pypi/pyversions/gitpulse-analytics?style=for-the-badge&logo=python&logoColor=white&color=3776AB)](https://pypi.org/project/gitpulse-analytics/)
 [![Homebrew](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Ffullstackspectrum%2Fhomebrew-gitpulse%2Fmain%2FFormula%2Fgitpulse.rb&search=gitpulse_analytics-%28%5B0-9.%5D%2B%29%5C.tar%5C.gz&replace=v%241&label=homebrew&style=for-the-badge&logo=homebrew&logoColor=white&color=FBB040)](https://github.com/fullstackspectrum/homebrew-gitpulse)
 [![Docker](https://img.shields.io/docker/image-size/fullstackspectrum/gitpulse/latest?style=for-the-badge&logo=docker&logoColor=white&label=docker&color=2496ED)](https://hub.docker.com/r/fullstackspectrum/gitpulse)
