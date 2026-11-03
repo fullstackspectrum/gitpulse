@@ -53,7 +53,7 @@ python -m pip install gitpulse-analytics
 docker run --rm -e GITHUB_TOKEN -v "$PWD:/data" fullstackspectrum/gitpulse org ORG
 ```
 
-The container runs as UID 1000. On Linux, if your user can't write the mounted directory as that UID, add `--user "$(id -u):$(id -g)"`.
+The image is built on a [Docker Hardened Image](https://dhi.io) (Alpine), so it has no shell or package manager and runs as the non-root UID 65532. On Linux, if that UID can't write the mounted directory, add `--user "$(id -u):$(id -g)"`.
 
 **From source**, for development:
 
