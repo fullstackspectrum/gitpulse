@@ -53,7 +53,7 @@ python -m pip install gitpulse-analytics
 docker run --rm -e GITHUB_TOKEN -v "$PWD:/data" fullstackspectrum/gitpulse org ORG
 ```
 
-The container runs as UID 1000. On Linux, if your user can't write the mounted directory as that UID, add `--user "$(id -u):$(id -g)"`.
+The image is built on a [Docker Hardened Image](https://dhi.io) (Alpine), so it has no shell or package manager and runs as the non-root UID 65532. On Linux, if that UID can't write the mounted directory, add `--user "$(id -u):$(id -g)"`.
 
 **From source**, for development:
 
@@ -145,7 +145,8 @@ Run tests with `pytest` and lint with `ruff check .`.
 
 ### Releasing
 
-1. Bump `__version__` in `src/gitpulse/__init__.py` and merge to `main`.
-2. Publish a GitHub release with the tag `vX.Y.Z` matching that version.
+1. Bump `__version__` in `src/gitpulse/__init__.py`.
+2. In [CHANGELOG.md](CHANGELOG.md), move the `Unreleased` entries under a new `X.Y.Z` heading with the date, and update the comparison links at the bottom. Merge to `main`.
+3. Publish a GitHub release with the tag `vX.Y.Z` matching that version, using that version's changelog section as the release notes.
 
 The `Release` workflow checks that the tag matches the version, then publishes to PyPI. After that it pushes the multi-arch Docker image and updates the formula in [homebrew-gitpulse](https://github.com/fullstackspectrum/homebrew-gitpulse). A release marked as a pre-release goes to PyPI and to Docker Hub under its exact version tag only, without moving `latest` or the Homebrew formula. The formula template lives in `packaging/homebrew/`; edit it there, not in the tap.
