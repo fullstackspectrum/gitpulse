@@ -6,6 +6,9 @@
 [![Homebrew](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Ffullstackspectrum%2Fhomebrew-gitpulse%2Fmain%2FFormula%2Fgitpulse.rb&search=gitpulse_analytics-%28%5B0-9.%5D%2B%29%5C.tar%5C.gz&replace=v%241&label=homebrew&style=for-the-badge&logo=homebrew&logoColor=white&color=FBB040)](https://github.com/fullstackspectrum/homebrew-gitpulse)
 [![Docker](https://img.shields.io/docker/image-size/fullstackspectrum/gitpulse/latest?style=for-the-badge&logo=docker&logoColor=white&label=docker&color=2496ED)](https://hub.docker.com/r/fullstackspectrum/gitpulse)
 [![License](https://img.shields.io/github/license/fullstackspectrum/gitpulse?style=for-the-badge&color=6E7781)](LICENSE)
+<br>
+[![PyPI downloads](https://img.shields.io/pepy/dt/gitpulse-analytics?style=for-the-badge&logo=pypi&logoColor=white&label=pypi%20downloads&color=3775A9)](https://pepy.tech/projects/gitpulse-analytics)
+[![Docker pulls](https://img.shields.io/docker/pulls/fullstackspectrum/gitpulse?style=for-the-badge&logo=docker&logoColor=white&label=docker%20pulls&color=2496ED)](https://hub.docker.com/r/fullstackspectrum/gitpulse)
 
 A local Python CLI for GitHub repository traffic and release asset download stats. GitPulse can build a dashboard for a whole organization, and it keeps SQLite snapshots so you have history beyond GitHub's short traffic window.
 
