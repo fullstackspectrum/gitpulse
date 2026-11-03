@@ -11,6 +11,10 @@ import requests
 class GitHubAPIError(RuntimeError):
     """An error returned by the GitHub API or the local HTTP client."""
 
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
+
 
 class GitHubClient:
     """Authenticated client for GitHub's REST API."""
@@ -59,14 +63,16 @@ class GitHubClient:
                 else "your token may not have access to it."
             )
             raise GitHubAPIError(
-                f"GitHub returned 404. The repository may not exist, or {hint}{suffix}"
+                f"GitHub returned 404. The repository may not exist, or {hint}{suffix}",
+                status=404,
             )
         if response.status_code == 403:
             sso = response.headers.get("X-GitHub-SSO")
             if sso:
                 raise GitHubAPIError(
                     "GitHub denied this request because the organization requires SAML SSO. "
-                    f"Authorize your token for the organization ({sso}).{suffix}"
+                    f"Authorize your token for the organization ({sso}).{suffix}",
+                    status=403,
                 )
             hint = (
                 "Traffic endpoints need a token with Administration: Read on this repository "
@@ -75,39 +81,61 @@ class GitHubClient:
                 else "Check that your token includes this repository and has Contents: Read "
                 "(classic tokens: the repo scope)."
             )
-            raise GitHubAPIError(f"GitHub denied this request. {hint}{suffix}")
+            raise GitHubAPIError(f"GitHub denied this request. {hint}{suffix}", status=403)
         if not response.ok:
-            raise GitHubAPIError(f"GitHub API returned HTTP {response.status_code}.{suffix}")
+            raise GitHubAPIError(
+                f"GitHub API returned HTTP {response.status_code}.{suffix}",
+                status=response.status_code,
+            )
         try:
             return response.json()
         except ValueError as exc:
             raise GitHubAPIError("GitHub returned an invalid JSON response.") from exc
 
-    def list_repositories(self) -> list[dict[str, Any]]:
-        repos: list[dict[str, Any]] = []
+    def _paginate(self, path: str, params: dict[str, Any]) -> list[dict[str, Any]]:
+        items: list[dict[str, Any]] = []
         page = 1
         while True:
-            batch = self.get(
-                "/user/repos",
-                params={
-                    "per_page": 100,
-                    "page": page,
-                    "sort": "updated",
-                    "affiliation": "owner,collaborator,organization_member",
-                },
-            )
+            batch = self.get(path, params={**params, "per_page": 100, "page": page})
             if not isinstance(batch, list) or not batch:
                 break
-            repos.extend(batch)
+            items.extend(batch)
             if len(batch) < 100:
                 break
             page += 1
-        return repos
+        return items
+
+    def list_repositories(self) -> list[dict[str, Any]]:
+        return self._paginate(
+            "/user/repos",
+            {"sort": "updated", "affiliation": "owner,collaborator,organization_member"},
+        )
+
+    def owner_profile(self, owner: str) -> dict[str, Any]:
+        """Return the organization or user profile for OWNER."""
+        result = self.get(f"/users/{owner}")
+        return result if isinstance(result, dict) else {}
+
+    def list_owner_repositories(self, owner: str) -> list[dict[str, Any]]:
+        """List every repository owned by an organization or user that the token can see."""
+        try:
+            return self._paginate(f"/orgs/{owner}/repos", {"type": "all", "sort": "pushed"})
+        except GitHubAPIError as exc:
+            if exc.status != 404:
+                raise
+        # Not an organization. For the authenticated user, /user/repos includes private repos.
+        me = self.get("/user")
+        if isinstance(me, dict) and str(me.get("login", "")).lower() == owner.lower():
+            repos = self._paginate("/user/repos", {"affiliation": "owner", "sort": "pushed"})
+            return [r for r in repos if r.get("owner", {}).get("login", "").lower() == owner.lower()]
+        return self._paginate(f"/users/{owner}/repos", {"type": "owner", "sort": "pushed"})
 
     def traffic(self, owner: str, repo: str, metric: str) -> dict[str, Any]:
         if metric not in {"views", "clones", "popular/paths", "referrers"}:
             raise ValueError(f"Unsupported traffic metric: {metric}")
-        result = self.get(f"/repos/{owner}/{repo}/traffic/{metric}")
+        # GitHub serves referrers under traffic/popular/referrers.
+        path = "popular/referrers" if metric == "referrers" else metric
+        result = self.get(f"/repos/{owner}/{repo}/traffic/{path}")
         if isinstance(result, list):
             key = "popular/paths" if metric == "popular/paths" else "referrers"
             return {key: result}

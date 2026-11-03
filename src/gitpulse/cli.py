@@ -2,13 +2,27 @@
 
 from __future__ import annotations
 
+import webbrowser
+from pathlib import Path
 from typing import Any
 
 import typer
+from rich import box
 from rich.console import Console
+from rich.panel import Panel
+from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    TimeElapsedColumn,
+)
 from rich.table import Table
 
 from gitpulse.github_api import GitHubAPIError, GitHubClient
+from gitpulse.org import OrgReport, collect_org
+from gitpulse.report import render_html
 from gitpulse.storage import SnapshotStore
 
 app = typer.Typer(
@@ -185,6 +199,152 @@ def release_downloads(
     else:
         console.print(table)
     console.print("[dim]Release asset counts do not indicate Homebrew formula installs or identify downloaders.[/dim]")
+
+
+SPARK_CHARS = "▁▂▃▄▅▆▇█"
+
+
+def _spark(values: list[int]) -> str:
+    peak = max(values, default=0)
+    if not peak:
+        return "[dim]" + "·" * len(values) + "[/dim]"
+    # Scale min..max so day-to-day movement shows even when traffic never drops to zero.
+    low = min(values)
+    span = (peak - low) or 1
+    return "".join(SPARK_CHARS[round((v - low) / span * (len(SPARK_CHARS) - 1))] for v in values)
+
+
+def _org_summary(report: OrgReport) -> None:
+    views = report.daily("views_daily")
+    days = [day for day, _ in views]
+    window = f"{days[0]} → {days[-1]}" if days else "no traffic data"
+    name = report.profile.get("name") or report.owner
+    console.print(
+        Panel.fit(
+            f"[bold]{name}[/bold] [dim]@{report.owner}[/dim]\n"
+            f"{len(report.repos)} repositories · traffic {window}",
+            border_style="cyan",
+        )
+    )
+
+    def tile(label: str, value: int, style: str = "bold") -> Panel:
+        return Panel(f"[{style}]{value:,}[/{style}]\n[dim]{label}[/dim]", expand=True, border_style="dim")
+
+    tiles = [
+        tile("views · 14d", report.total("views"), "bold cyan"),
+        tile("unique visitors*", report.total("view_uniques")),
+        tile("clones · 14d", report.total("clones"), "bold magenta"),
+        tile("stars", report.total("stars"), "bold yellow"),
+        tile("forks", report.total("forks")),
+        tile("release downloads", report.total("downloads"), "bold green"),
+    ]
+    grid = Table.grid(expand=True, padding=(0, 1))
+    for _ in range(3):
+        grid.add_column(ratio=1)
+    grid.add_row(*tiles[:3])
+    grid.add_row(*tiles[3:])
+    console.print(grid)
+    if views:
+        console.print(f"  [dim]daily views[/dim]  [cyan]{_spark([c for _, c in views])}[/cyan]")
+        clones = [c for _, c in report.daily("clones_daily")]
+        console.print(f"  [dim]daily clones[/dim] [magenta]{_spark(clones)}[/magenta]\n")
+
+    table = Table(header_style="bold cyan", box=box.SIMPLE_HEAD, expand=True)
+    table.add_column("Repository", overflow="fold")
+    table.add_column("Lang", style="dim")
+    for column in ("Stars", "Forks", "Views", "Unique", "Clones", "Downloads"):
+        table.add_column(column, justify="right")
+    table.add_column("14-day views")
+    for repo in report.repos:
+        ok = repo.traffic_error is None
+        na = "[dim]n/a[/dim]"
+        table.add_row(
+            repo.name + (" [dim](private)[/dim]" if repo.private else ""),
+            repo.language or "—",
+            f"{repo.stars:,}",
+            f"{repo.forks:,}",
+            f"{repo.views:,}" if ok else na,
+            f"{repo.view_uniques:,}" if ok else na,
+            f"{repo.clones:,}" if ok else na,
+            f"{repo.downloads:,}" if repo.releases_error is None else na,
+            f"[cyan]{_spark([repo.views_daily.get(d, 0) for d in days])}[/cyan]" if ok and days else "",
+        )
+    console.print(table)
+
+    referrers = report.referrers(limit=5)
+    if referrers:
+        ref_table = Table(title="Top referrers", header_style="bold cyan", box=box.SIMPLE_HEAD)
+        ref_table.add_column("Source")
+        ref_table.add_column("Views", justify="right")
+        ref_table.add_column("Unique*", justify="right")
+        for source, count, uniques in referrers:
+            ref_table.add_row(source, f"{count:,}", f"{uniques:,}")
+        console.print(ref_table)
+
+    missing = [repo for repo in report.repos if repo.traffic_error]
+    if missing:
+        console.print(
+            f"[yellow]Traffic unavailable for {len(missing)} of {len(report.repos)} repositories[/yellow] "
+            "[dim](the token needs Administration: Read or push access). See the dashboard for details.[/dim]"
+        )
+    console.print("[dim]*Unique counts are summed per repository, so one person can be counted more than once.[/dim]")
+
+
+@app.command("org")
+def org_dashboard(
+    owner: str = typer.Argument(..., help="Organization or user login."),
+    output: str = typer.Option(
+        "", "--output", "-o", help="HTML file to write. Defaults to gitpulse-OWNER.html."
+    ),
+    all_repos: bool = typer.Option(False, "--all", help="Include forks and archived repositories."),
+    open_browser: bool = typer.Option(False, "--open", help="Open the dashboard in your browser."),
+    save: bool = typer.Option(False, "--save", help="Also save views and clones snapshots to local history."),
+    workers: int = typer.Option(8, min=1, max=32, help="Repositories to fetch in parallel."),
+) -> None:
+    """Build an HTML dashboard of traffic, stars, and downloads across an organization."""
+    client = _client()
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        MofNCompleteColumn(),
+        TimeElapsedColumn(),
+        console=console,
+        transient=True,
+    ) as progress:
+        task = progress.add_task(f"Listing repositories for {owner}", total=None)
+        report = _run(
+            lambda: collect_org(
+                client,
+                owner,
+                include_all=all_repos,
+                workers=workers,
+                on_start=lambda count: progress.update(
+                    task, total=count, description=f"Fetching stats for {owner}"
+                ),
+                on_repo=lambda repo: progress.update(task, advance=1, description=repo.name),
+            )
+        )
+    if not report.repos:
+        console.print(f"No repositories found for [bold]{owner}[/bold].")
+        raise typer.Exit(code=1)
+
+    _org_summary(report)
+
+    if save:
+        store = SnapshotStore()
+        saved = 0
+        for repo in report.traffic_repos:
+            for metric, payload in repo.raw_traffic.items():
+                store.save(repo.owner, repo.name, metric, payload)
+            saved += 1
+        console.print(f"[green]Saved snapshots for {saved} repositories.[/green]")
+
+    path = Path(output or f"gitpulse-{report.owner}.html").expanduser().resolve()
+    path.write_text(render_html(report), encoding="utf-8")
+    console.print(f"\n[bold green]✓[/bold green] Dashboard written to [link={path.as_uri()}]{path}[/link]")
+    if open_browser:
+        webbrowser.open(path.as_uri())
 
 
 if __name__ == "__main__":
