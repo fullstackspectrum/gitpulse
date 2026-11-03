@@ -8,3 +8,6 @@ venv/
 .env
 .gitpulse/
 *.sqlite3
+
+# Generated dashboards
+gitpulse-*.html

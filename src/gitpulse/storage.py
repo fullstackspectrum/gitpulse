@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +43,7 @@ class SnapshotStore:
         return sqlite3.connect(self.path)
 
     def save(self, owner: str, repo: str, metric: str, payload: dict[str, Any]) -> None:
-        fetched_at = datetime.now(UTC).isoformat(timespec="seconds")
+        fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
         with self._connect() as conn:
             conn.execute(
                 "INSERT INTO snapshots(owner, repo, metric, fetched_at, payload) VALUES (?, ?, ?, ?, ?)",
