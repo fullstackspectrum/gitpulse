@@ -1,4 +1,4 @@
-# GitPulse
+[![GitPulse: GitHub traffic, kept past the 14-day window.](https://raw.githubusercontent.com/fullstackspectrum/gitpulse/main/docs/brand/readme-banner.png)](https://github.com/fullstackspectrum/gitpulse)
 
 [![CI](https://img.shields.io/github/actions/workflow/status/fullstackspectrum/gitpulse/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI&color=4f8cff&labelColor=10151d)](https://github.com/fullstackspectrum/gitpulse/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpypi.org%2Fpypi%2Fgitpulse-analytics%2Fjson&query=%24.info.version&prefix=v&label=pypi&style=for-the-badge&logo=pypi&logoColor=white&color=8fb4ff&labelColor=10151d)](https://pypi.org/project/gitpulse-analytics/)
