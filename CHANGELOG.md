@@ -6,6 +6,17 @@ All notable changes to GitPulse are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- The HTML dashboard and terminal summary use the Full-Stack-Spectrum brand:
+  near-black surfaces with a dot grid, Space Grotesk and JetBrains Mono, and
+  the five-colour spectrum (blue, blue-soft, yellow, orange, red) for charts.
+- The dashboard is dark only; the light theme and its toggle are gone.
+- The language breakdown shows the top five languages plus Other, down from
+  seven, so each gets a spectrum colour.
+- The dashboard loads its two fonts from Google Fonts and falls back to system
+  fonts offline.
+
 ## [0.2.1] - 2026-11-03
 
 ### Security

@@ -19,6 +19,7 @@ from rich.progress import (
     TimeElapsedColumn,
 )
 from rich.table import Table
+from rich.theme import Theme
 
 from gitpulse import __version__
 from gitpulse.github_api import GitHubAPIError, GitHubClient
@@ -31,7 +32,26 @@ app = typer.Typer(
     help="Local GitHub repository traffic and release analytics.",
     no_args_is_help=True,
 )
-console = Console()
+# Full-Stack-Spectrum palette (fullstackspectrum.com): red leads, the rest of the spectrum marks data.
+THEME = Theme(
+    {
+        "brand": "bold #ff4d5e",
+        "heading": "bold #8fb4ff",
+        "frame": "#2f3a4b",
+        "views": "#4f8cff",
+        "clones": "#ff8a3d",
+        "stars": "#f5c84c",
+        "downloads": "#8fb4ff",
+        "ok": "#8fb4ff",
+        "warn": "#f5c84c",
+        "error": "bold #ff4d5e",
+        "progress.spinner": "#ff4d5e",
+        "bar.complete": "#ff4d5e",
+        "bar.finished": "#4f8cff",
+        "bar.pulse": "#ff4d5e",
+    }
+)
+console = Console(theme=THEME)
 
 
 def _version_callback(value: bool) -> None:
@@ -53,7 +73,7 @@ def _client() -> GitHubClient:
     try:
         return GitHubClient()
     except GitHubAPIError as exc:
-        console.print(f"[red]Error:[/red] {exc}")
+        console.print(f"[error]Error:[/error] {exc}")
         raise typer.Exit(code=1) from exc
 
 
@@ -61,7 +81,7 @@ def _run(action: Any) -> Any:
     try:
         return action()
     except GitHubAPIError as exc:
-        console.print(f"[red]Error:[/red] {exc}")
+        console.print(f"[error]Error:[/error] {exc}")
         raise typer.Exit(code=1) from exc
 
 
@@ -73,7 +93,7 @@ def _repo_parts(repository: str) -> tuple[str, str]:
 
 
 def _traffic_table(owner: str, repo: str, metric: str, data: dict[str, Any]) -> Table:
-    table = Table(title=f"{owner}/{repo} · {metric}", header_style="bold cyan")
+    table = Table(title=f"{owner}/{repo} · {metric}", header_style="heading")
     if metric in {"views", "clones"}:
         table.add_column("Date")
         table.add_column("Count", justify="right")
@@ -110,7 +130,7 @@ def list_repos(
     repos = _run(_client().list_repositories)
     if not all_repos:
         repos = [repo for repo in repos if not repo.get("fork") and not repo.get("archived")]
-    table = Table(title="Your repositories", header_style="bold cyan")
+    table = Table(title="Your repositories", header_style="heading")
     table.add_column("Repository")
     table.add_column("Visibility")
     table.add_column("Stars", justify="right")
@@ -143,7 +163,7 @@ def traffic(
     console.print(_traffic_table(owner, repo, metric, data))
     if save and metric in {"views", "clones"}:
         SnapshotStore().save(owner, repo, metric, data)
-        console.print("[green]Snapshot saved locally.[/green]")
+        console.print("[ok]Snapshot saved locally.[/ok]")
     console.print("[dim]GitHub provides aggregate traffic data, not visitor identities; traffic history is typically limited to 14 days.[/dim]")
 
 
@@ -159,7 +179,7 @@ def snapshot(
         data = _run(lambda metric=metric: client.traffic(owner, repo, metric))
         store.save(owner, repo, metric, data)
         console.print(_traffic_table(owner, repo, metric, data))
-    console.print("[green]Snapshots saved. Run this regularly to build longer-term history.[/green]")
+    console.print("[ok]Snapshots saved. Run this regularly to build longer-term history.[/ok]")
 
 
 @app.command()
@@ -173,7 +193,7 @@ def history(
     if metric not in {"views", "clones"}:
         raise typer.BadParameter("History is available for views or clones")
     rows = SnapshotStore().history(owner, repo, metric, limit)
-    table = Table(title=f"Local history · {owner}/{repo} · {metric}", header_style="bold cyan")
+    table = Table(title=f"Local history · {owner}/{repo} · {metric}", header_style="heading")
     table.add_column("Collected at")
     table.add_column("14-day total", justify="right")
     table.add_column("Sum of daily uniques*", justify="right")
@@ -199,7 +219,7 @@ def release_downloads(
     """Show GitHub release asset download counts (not Homebrew install counts)."""
     owner, repo = _repo_parts(repository)
     release_count, assets = _run(lambda: _client().release_downloads(owner, repo))
-    table = Table(title=f"Release asset downloads · {owner}/{repo}", header_style="bold cyan")
+    table = Table(title=f"Release asset downloads · {owner}/{repo}", header_style="heading")
     table.add_column("Release")
     table.add_column("Asset")
     table.add_column("Downloads", justify="right")
@@ -237,22 +257,24 @@ def _org_summary(report: OrgReport) -> None:
     name = report.profile.get("name") or report.owner
     console.print(
         Panel.fit(
+            f"[dim]//[/dim] [brand]gitpulse[/brand]\n"
             f"[bold]{name}[/bold] [dim]@{report.owner}[/dim]\n"
             f"{len(report.repos)} repositories · traffic {window}",
-            border_style="cyan",
+            border_style="frame",
         )
     )
 
-    def tile(label: str, value: int, style: str = "bold") -> Panel:
-        return Panel(f"[{style}]{value:,}[/{style}]\n[dim]{label}[/dim]", expand=True, border_style="dim")
+    def tile(label: str, value: int, style: str = "") -> Panel:
+        number = f"[{style}]{value:,}[/{style}]" if style else f"{value:,}"
+        return Panel(f"[bold]{number}[/bold]\n[dim]{label}[/dim]", expand=True, border_style="frame")
 
     tiles = [
-        tile("views · 14d", report.total("views"), "bold cyan"),
+        tile("views · 14d", report.total("views"), "views"),
         tile("unique visitors*", report.total("view_uniques")),
-        tile("clones · 14d", report.total("clones"), "bold magenta"),
-        tile("stars", report.total("stars"), "bold yellow"),
+        tile("clones · 14d", report.total("clones"), "clones"),
+        tile("stars", report.total("stars"), "stars"),
         tile("forks", report.total("forks")),
-        tile("release downloads", report.total("downloads"), "bold green"),
+        tile("release downloads", report.total("downloads"), "downloads"),
     ]
     grid = Table.grid(expand=True, padding=(0, 1))
     for _ in range(3):
@@ -261,11 +283,11 @@ def _org_summary(report: OrgReport) -> None:
     grid.add_row(*tiles[3:])
     console.print(grid)
     if views:
-        console.print(f"  [dim]daily views[/dim]  [cyan]{_spark([c for _, c in views])}[/cyan]")
+        console.print(f"  [dim]daily views[/dim]  [views]{_spark([c for _, c in views])}[/views]")
         clones = [c for _, c in report.daily("clones_daily")]
-        console.print(f"  [dim]daily clones[/dim] [magenta]{_spark(clones)}[/magenta]\n")
+        console.print(f"  [dim]daily clones[/dim] [clones]{_spark(clones)}[/clones]\n")
 
-    table = Table(header_style="bold cyan", box=box.SIMPLE_HEAD, expand=True)
+    table = Table(header_style="heading", box=box.SIMPLE_HEAD, expand=True)
     table.add_column("Repository", overflow="fold")
     table.add_column("Lang", style="dim")
     for column in ("Stars", "Forks", "Views", "Unique", "Clones", "Downloads"):
@@ -283,13 +305,13 @@ def _org_summary(report: OrgReport) -> None:
             f"{repo.view_uniques:,}" if ok else na,
             f"{repo.clones:,}" if ok else na,
             f"{repo.downloads:,}" if repo.releases_error is None else na,
-            f"[cyan]{_spark([repo.views_daily.get(d, 0) for d in days])}[/cyan]" if ok and days else "",
+            f"[views]{_spark([repo.views_daily.get(d, 0) for d in days])}[/views]" if ok and days else "",
         )
     console.print(table)
 
     referrers = report.referrers(limit=5)
     if referrers:
-        ref_table = Table(title="Top referrers", header_style="bold cyan", box=box.SIMPLE_HEAD)
+        ref_table = Table(title="Top referrers", header_style="heading", box=box.SIMPLE_HEAD)
         ref_table.add_column("Source")
         ref_table.add_column("Views", justify="right")
         ref_table.add_column("Unique*", justify="right")
@@ -300,7 +322,7 @@ def _org_summary(report: OrgReport) -> None:
     missing = [repo for repo in report.repos if repo.traffic_error]
     if missing:
         console.print(
-            f"[yellow]Traffic unavailable for {len(missing)} of {len(report.repos)} repositories[/yellow] "
+            f"[warn]Traffic unavailable for {len(missing)} of {len(report.repos)} repositories[/warn] "
             "[dim](the token needs Administration: Read or push access). See the dashboard for details.[/dim]"
         )
     console.print("[dim]*Unique counts are summed per repository, so one person can be counted more than once.[/dim]")
@@ -354,11 +376,11 @@ def org_dashboard(
             for metric, payload in repo.raw_traffic.items():
                 store.save(repo.owner, repo.name, metric, payload)
             saved += 1
-        console.print(f"[green]Saved snapshots for {saved} repositories.[/green]")
+        console.print(f"[ok]Saved snapshots for {saved} repositories.[/ok]")
 
     path = Path(output or f"gitpulse-{report.owner}.html").expanduser().resolve()
     path.write_text(render_html(report), encoding="utf-8")
-    console.print(f"\n[bold green]✓[/bold green] Dashboard written to [link={path.as_uri()}]{path}[/link]")
+    console.print(f"\n[ok]✓[/ok] Dashboard written to [link={path.as_uri()}]{path}[/link]")
     if open_browser:
         webbrowser.open(path.as_uri())
 
