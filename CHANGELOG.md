@@ -6,6 +6,17 @@ All notable changes to GitPulse are documented here. The format is based on
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-08
+
+GitPulse is out of beta. From this release, the commands, their options and
+the snapshot database follow semantic versioning: breaking changes wait for 2.0.
+
+### Added
+
+- A GitPulse logo in the Full-Stack-Spectrum style: the Layered Core stack with
+  a red pulse line. The README opens with a banner, and the dashboard uses the
+  icon as its browser-tab icon.
+
 ### Changed
 
 - The HTML dashboard and terminal summary use the Full-Stack-Spectrum brand:
@@ -65,6 +76,7 @@ First public release.
   [`fullstackspectrum/gitpulse`](https://github.com/fullstackspectrum/homebrew-gitpulse)
   Homebrew tap, and as the multi-arch `fullstackspectrum/gitpulse` Docker image.
 
-[Unreleased]: https://github.com/fullstackspectrum/gitpulse/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/fullstackspectrum/gitpulse/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/fullstackspectrum/gitpulse/compare/v0.2.1...v1.0.0
 [0.2.1]: https://github.com/fullstackspectrum/gitpulse/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/fullstackspectrum/gitpulse/releases/tag/v0.2.0
