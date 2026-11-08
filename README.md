@@ -1,20 +1,22 @@
 # GitPulse
 
-[![CI](https://img.shields.io/github/actions/workflow/status/fullstackspectrum/gitpulse/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/fullstackspectrum/gitpulse/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpypi.org%2Fpypi%2Fgitpulse-analytics%2Fjson&query=%24.info.version&prefix=v&label=pypi&style=for-the-badge&logo=pypi&logoColor=white&color=3775A9)](https://pypi.org/project/gitpulse-analytics/)
-[![Python](https://img.shields.io/pypi/pyversions/gitpulse-analytics?style=for-the-badge&logo=python&logoColor=white&color=3776AB)](https://pypi.org/project/gitpulse-analytics/)
-[![Homebrew](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Ffullstackspectrum%2Fhomebrew-gitpulse%2Fmain%2FFormula%2Fgitpulse.rb&search=gitpulse_analytics-%28%5B0-9.%5D%2B%29%5C.tar%5C.gz&replace=v%241&label=homebrew&style=for-the-badge&logo=homebrew&logoColor=white&color=FBB040)](https://github.com/fullstackspectrum/homebrew-gitpulse)
-[![Docker](https://img.shields.io/docker/image-size/fullstackspectrum/gitpulse/latest?style=for-the-badge&logo=docker&logoColor=white&label=docker&color=2496ED)](https://hub.docker.com/r/fullstackspectrum/gitpulse)
-[![License](https://img.shields.io/github/license/fullstackspectrum/gitpulse?style=for-the-badge&color=6E7781)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/fullstackspectrum/gitpulse/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI&color=4f8cff&labelColor=10151d)](https://github.com/fullstackspectrum/gitpulse/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpypi.org%2Fpypi%2Fgitpulse-analytics%2Fjson&query=%24.info.version&prefix=v&label=pypi&style=for-the-badge&logo=pypi&logoColor=white&color=8fb4ff&labelColor=10151d)](https://pypi.org/project/gitpulse-analytics/)
+[![Python](https://img.shields.io/pypi/pyversions/gitpulse-analytics?style=for-the-badge&logo=python&logoColor=white&color=f5c84c&labelColor=10151d)](https://pypi.org/project/gitpulse-analytics/)
+[![Homebrew](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Ffullstackspectrum%2Fhomebrew-gitpulse%2Fmain%2FFormula%2Fgitpulse.rb&search=gitpulse_analytics-%28%5B0-9.%5D%2B%29%5C.tar%5C.gz&replace=v%241&label=homebrew&style=for-the-badge&logo=homebrew&logoColor=white&color=ff8a3d&labelColor=10151d)](https://github.com/fullstackspectrum/homebrew-gitpulse)
+[![Docker](https://img.shields.io/docker/image-size/fullstackspectrum/gitpulse/latest?style=for-the-badge&logo=docker&logoColor=white&label=docker&color=ff4d5e&labelColor=10151d)](https://hub.docker.com/r/fullstackspectrum/gitpulse)
+[![License](https://img.shields.io/github/license/fullstackspectrum/gitpulse?style=for-the-badge&color=646f7f&labelColor=10151d)](LICENSE)
 <br>
-[![PyPI downloads](https://img.shields.io/pepy/dt/gitpulse-analytics?style=for-the-badge&logo=pypi&logoColor=white&label=pypi%20downloads&color=3775A9)](https://pepy.tech/projects/gitpulse-analytics)
-[![Docker pulls](https://img.shields.io/docker/pulls/fullstackspectrum/gitpulse?style=for-the-badge&logo=docker&logoColor=white&label=docker%20pulls&color=2496ED)](https://hub.docker.com/r/fullstackspectrum/gitpulse)
+[![PyPI downloads](https://img.shields.io/pepy/dt/gitpulse-analytics?style=for-the-badge&logo=pypi&logoColor=white&label=pypi%20downloads&color=8fb4ff&labelColor=10151d)](https://pepy.tech/projects/gitpulse-analytics)
+[![Docker pulls](https://img.shields.io/docker/pulls/fullstackspectrum/gitpulse?style=for-the-badge&logo=docker&logoColor=white&label=docker%20pulls&color=ff4d5e&labelColor=10151d)](https://hub.docker.com/r/fullstackspectrum/gitpulse)
 
 A local Python CLI for GitHub repository traffic and release asset download stats. GitPulse can build a dashboard for a whole organization, and it keeps SQLite snapshots so you have history beyond GitHub's short traffic window.
 
+Part of [Full-Stack-Spectrum](https://fullstackspectrum.com) ↗: small, sharp, open-source utilities that each do one job and install in one line.
+
 > **What GitHub can tell you:** aggregate daily views and clones, unique counts, popular paths, referrers, and release-asset download totals. It does **not** identify individual visitors or people who cloned a repository. GitHub's traffic data is generally available for the most recent 14 days. Release asset downloads are not Homebrew formula install counts.
 
-![GitPulse organization dashboard](https://raw.githubusercontent.com/fullstackspectrum/gitpulse/main/docs/screenshots/dashboard-light.png)
+![GitPulse organization dashboard](https://raw.githubusercontent.com/fullstackspectrum/gitpulse/main/docs/screenshots/dashboard.png)
 
 ## Requirements
 
@@ -98,9 +100,7 @@ It also writes a self-contained HTML dashboard to `gitpulse-ORG.html` in the cur
 - The most viewed and most starred repositories, a language breakdown, top referrers, and release downloads by repository
 - A sortable, filterable table of every repository with a 14-day views sparkline
 
-Styles, charts, and scripts are all inline, so it works offline (only the owner's avatar loads from GitHub). It follows your system's light or dark theme, and has a toggle to switch.
-
-![Dashboard in dark mode](https://raw.githubusercontent.com/fullstackspectrum/gitpulse/main/docs/screenshots/dashboard-dark.png)
+Styles, charts, and scripts are all inline. Only the owner's avatar and the Space Grotesk and JetBrains Mono web fonts load from the network; offline, the dashboard falls back to system fonts. It uses the dark [Full-Stack-Spectrum](https://fullstackspectrum.com) style.
 
 By default, forks and archived repositories are skipped; `--all` includes them. When your token can't read traffic for a repository, its stars, forks, and downloads still appear, and the dashboard lists which repositories are missing traffic and why. Unique visitor and cloner counts are summed per repository, so one person who visits two repositories is counted twice.
 
