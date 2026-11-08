@@ -9,8 +9,19 @@ import json
 import math
 from html import escape
 from typing import Any
+from urllib.parse import quote
 
 from gitpulse.org import OrgReport, RepoStats
+
+# The GitPulse mark (docs/brand/gitpulse-icon.svg), inlined as the tab icon.
+ICON = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0d12"/>'
+    '<rect x="25" y="11" width="28" height="28" rx="6" fill="#0a0d12" stroke="#4f8cff" stroke-width="3.5"/>'
+    '<rect x="18" y="18" width="28" height="28" rx="6" fill="#0a0d12" stroke="#f5c84c" stroke-width="3.5"/>'
+    '<rect x="11" y="25" width="28" height="28" rx="6" fill="#0a0d12" stroke="#eef1f6" stroke-width="3.5"/>'
+    '<path d="M16.5 40h4.5l2.75-6.5 4.5 12 2.75-5.5h3.5" fill="none" stroke="#ff4d5e" stroke-width="3" '
+    'stroke-linecap="round" stroke-linejoin="round"/></svg>'
+)
 
 # Categorical slots follow the five-colour spectrum, cool to hot; a sixth slot is "Other".
 SERIES = 6
@@ -283,6 +294,7 @@ def render_html(report: OrgReport) -> str:
         downloads=_bar_list(repo_bars("downloads", "downloads"), "No release asset downloads."),
         rows=rows,
         missing=missing_html,
+        icon=_attr("data:image/svg+xml," + quote(ICON)),
         css=CSS,
         js=JS,
     )
@@ -536,6 +548,7 @@ TEMPLATE = """<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{title}</title>
 <meta name="theme-color" content="#0a0d12" />
+<link rel="icon" type="image/svg+xml" href="{icon}" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" />
